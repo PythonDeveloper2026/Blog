@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile_user.username }} Profili - Blog{% endblock %}
+
+{% block content %}
+<div class="card mb-4 shadow-sm">
+    <div class="row g-0">
+        <div class="col-md-3 text-center p-4">
+            <img class="rounded-circle img-fluid shadow-sm" style="max-width: 150px; height: 150px; object-fit: cover;" src="{{ profile_user.profile.profile_picture.url }}" alt="{{ profile_user.username }} rasm">
+        </div>
+        <div class="col-md-9">
+            <div class="card-body">
+                <h2 class="card-title">{{ profile_user.username }}
+                    {% if user == profile_user %}
+                        <a href="{% url 'profile' %}" class="btn btn-outline-secondary btn-sm float-end">Profilni tahrirlash</a>
+                    {% elif user.is_authenticated %}
+                        <form action="{% url 'follow-user' profile_user.username %}" method="POST" class="d-inline float-end">
+                            {% csrf_token %}
+                            {% if is_following %}
+                                <button type="submit" class="btn btn-secondary btn-sm">Kuzatishni bekor qilish</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-primary btn-sm">Kuzatish</button>
+                            {% endif %}
+                        </form>
+                    {% endif %}
+                </h2>
+                <p class="text-muted">
+                    Qo'shilgan sana: {{ profile_user.date_joined|date:"d M Y" }} <br>
+                    Postlar soni: {{ profile_user.blog_posts.count }} |
+                    Kuzatuvchilar: {{ profile_user.profile.followers.count }} |
+                    Kuzatmoqda: {{ profile_user.following.count }}
+                </p>
+                {% if profile_user.profile.bio %}
+                    <hr>
+                    <h5>Haqida:</h5>
+                    <p class="card-text">{{ profile_user.profile.bio }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3 class="mb-4">{{ profile_user.username }} yozgan postlar:</h3>
+
+{% for post in page_obj %}
+    <div class="card mb-3 shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title"><a href="{{ post.get_absolute_url }}" class="text-decoration-none text-dark">{{ post.title }}</a></h4>
+            <div class="text-muted mb-2">
+                <small>Sana: {{ post.created_at|date:"d.m.Y H:i" }}</small>
+            </div>
+            <p class="card-text">{{ post.summary|default:post.content|striptags|truncatewords:20|safe }}</p>
+            <a href="{{ post.get_absolute_url }}" class="btn btn-outline-primary btn-sm">Batafsil &rarr;</a>
+        </div>
+    </div>
+{% empty %}
+    <p>Ushbu foydalanuvchi hozircha hech qanday post yozmagan.</p>
+{% endfor %}
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">&laquo; Birinchi</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Oldingi</a></li>
+            {% endif %}
+
+            <li class="page-item disabled"><span class="page-link">Sahifa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Keyingi</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Oxirgi &raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock content %}

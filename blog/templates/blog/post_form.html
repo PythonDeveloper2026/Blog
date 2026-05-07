@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if object %}Tahrirlash: {{ object.title }}{% else %}Yangi post yozish{% endif %} - Blog{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">{% if object %}Postni tahrirlash{% else %}Yangi post yaratish{% endif %}</h2>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.media }}
+                    {{ form|crispy }}
+                    <div class="mt-4">
+                        <button class="btn btn-primary" type="submit">Saqlash</button>
+                        <a class="btn btn-outline-secondary" href="{% if object %}{{ object.get_absolute_url }}{% else %}{% url 'blog-home' %}{% endif %}">Bekor qilish</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

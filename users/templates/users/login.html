@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Kirish (Login) - Blog{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm mt-5">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Tizimga kirish</h2>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid gap-2 mt-4">
+                        <button class="btn btn-primary" type="submit">Kirish</button>
+                    </div>
+                </form>
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        Akkountingiz yo'qmi? <a href="{% url 'register' %}">Ro'yxatdan o'tish</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ post.title }} - Blog{% endblock %}
+
+{% block content %}
+<article class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h1 class="card-title">{{ post.title }}</h1>
+        <div class="text-muted mb-3 border-bottom pb-2">
+            Muallif: <a href="{% url 'author-posts' post.author.username %}">{{ post.author.username }}</a> | 
+            Yaratilgan: {{ post.created_at|date:"d M Y, H:i" }} | 
+            <i class="bi bi-clock"></i> O'qish uchun: ~{{ post.get_reading_time }} daqiqa
+            {% if post.status == 'draft' %}
+                <span class="badge bg-warning text-dark ms-2">Qoralama (Draft)</span>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {% for tag in post.tags.all %}
+                <a href="{% url 'post-by-tag' tag.slug %}" class="badge bg-secondary text-decoration-none">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+
+        <div class="card-text mb-4" style="font-size: 1.1rem;">{{ post.content|safe }}</div>
+        
+        <div class="d-flex justify-content-between align-items-center mt-4 border-top pt-3">
+            <div>
+                <form action="{% url 'like-post' post.slug %}" method="POST" class="d-inline">
+                    {% csrf_token %}
+                    {% if user.is_authenticated %}
+                        {% if liked %}
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-hand-thumbs-up-fill"></i> Yoqdi ({{ post.total_likes }})</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-hand-thumbs-up"></i> Yoqdi ({{ post.total_likes }})</button>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-hand-thumbs-up"></i> Yoqdi ({{ post.total_likes }})</a>
+                    {% endif %}
+                </form>
+            </div>
+            {% if user == post.author or user.is_staff %}
+                <div>
+                    <a class="btn btn-secondary btn-sm" href="{% url 'post-update' post.slug %}">Tahrirlash</a>
+                    <a class="btn btn-danger btn-sm" href="{% url 'post-delete' post.slug %}">O'chirish</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</article>
+
+<!-- Similar posts -->
+{% if similar_posts %}
+<div class="mb-5">
+    <h4>O'xshash postlar:</h4>
+    <div class="row">
+        {% for sim_post in similar_posts %}
+            <div class="col-md-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h6 class="card-title"><a href="{{ sim_post.get_absolute_url }}" class="text-decoration-none text-dark">{{ sim_post.title }}</a></h6>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Comments Section -->
+<div class="card shadow-sm mb-5">
+    <div class="card-body">
+        <h3 class="card-title mb-4">Izohlar ({{ post.comments.count }})</h3>
+        
+        {% if user.is_authenticated %}
+            <form method="POST" class="mb-4">
+                {% csrf_token %}
+                {{ comment_form|crispy }}
+                <button type="submit" class="btn btn-success mt-2">Izoh qoldirish</button>
+            </form>
+        {% else %}
+            <p class="mb-4"><a href="{% url 'login' %}">Izoh qoldirish uchun tizimga kiring.</a></p>
+        {% endif %}
+
+        {% for comment in post.comments.all %}
+            <div class="d-flex mb-3 pb-3 border-bottom">
+                <img src="{{ comment.author.profile.profile_picture.url }}" alt="{{ comment.author.username }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                <div>
+                    <h6 class="mb-0">{{ comment.author.username }} <small class="text-muted">{{ comment.created_at|date:"d M Y, H:i" }}</small></h6>
+                    <p class="mb-1 mt-1">{{ comment.content }}</p>
+                    {% if user == comment.author %}
+                        <div class="mt-1">
+                            <a href="{% url 'comment-update' comment.id %}" class="btn btn-link btn-sm p-0 text-secondary me-2 text-decoration-none">Tahrirlash</a>
+                            <a href="{% url 'comment-delete' comment.id %}" class="btn btn-link btn-sm p-0 text-danger text-decoration-none">O'chirish</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <p>Hali izohlar yo'q. Birinchi bo'lib izoh qoldiring!</p>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock content %}
